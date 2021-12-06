@@ -165,10 +165,10 @@ def get_Predictions_Info(predictions):
     a_classes = a_classes[dest]
     a_keypoints = a_keypoints[dest][:,:]
     a_scores = max(a_scores)
-    print(a_boxes)
-    print(a_scores)
-    print(a_classes)
-    print(a_keypoints)
+    # print(a_boxes)
+    # print(a_scores)
+    # print(a_classes)
+    # print(a_keypoints)
     return a_boxes, a_scores, a_classes, a_keypoints
 
 
@@ -182,6 +182,7 @@ if __name__ == "__main__":
 
     for imgfile in os.listdir(INPUT_IMG_PATH):
         img_fullName = os.path.join(INPUT_IMG_PATH, imgfile)
+        print('\n正在处理图片：' + img_fullName)
         img = read_image(img_fullName, format="BGR")
         predictor = DefaultPredictor(cfg)
         outputs = predictor(img)
@@ -191,14 +192,14 @@ if __name__ == "__main__":
             scores = []
             classes = []
             keypoints = []
-            print("无检测结果")
+            print("警告：无检测结果！")
         else:
             dect = 1
             boxes, scores, classes, keypoints = get_Predictions_Info(outputs["instances"])
+            print("提示：已成功保存检测数据至/out_data/！")
         
         if '.' in imgfile:
             imgfile = imgfile.split('.')[0]
         data_name = OUTPUT_DATA_PATH + imgfile + '.npz'
         np.savez(data_name, dect=dect,boxes=boxes,scores=scores,classes=classes,keypoints=keypoints)
-        print(imgfile)
-        print(img_fullName)
+        

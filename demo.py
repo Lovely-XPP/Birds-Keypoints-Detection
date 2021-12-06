@@ -343,7 +343,7 @@ if __name__ == "__main__":
             outputs = predictor(img)
             v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
-            boxes, scores, classes, keypoints = get_Predictions_Info(outputs["instances"]);
+            boxes, scores, classes, keypoints = get_Predictions_Info(outputs["instances"])
             print(keypoints)
 
             cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
