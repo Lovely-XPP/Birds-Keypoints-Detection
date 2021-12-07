@@ -236,14 +236,17 @@ if __name__ == '__main__':
         if '.' in imgfile:
             imgfile_base = imgfile.split('.')[0]
         dect, boxes, scores, classes, keypoints = load_pred_label(imgfile_base)
-        print("\n--------------------------------- " + imgfile +
-              " 检测结果 " + "---------------------------------\n")
+        str_ = '---------------------------------------'
+        nums_str = len(str_)*2 + 4*2
+        print("\n" + str_ + " 检测结果 " + str_ + "\n")
+        print("图片名称：" + imgfile)
+        print("图片位置：" + INPUT_IMG_PATH)
         if dect == 0:
             print("无检测结果！\n")
-            print("---------------------------------------------------------------------------------------------------")
+            print("-"*nums_str)
             continue
         print("鸟类名称：\n当前状态：" + staus[classes] + "\n")
-        print("-------------------------------------------------------------------------------------------------------")
+        print("-"*nums_str)
         img_fullName = os.path.join(INPUT_IMG_PATH, imgfile)
         img = cv2.imread(img_fullName)
         fig_instances(img, classes, boxes, keypoints, keypoint_names, keypoint_color, keypoint_connection_rules)
