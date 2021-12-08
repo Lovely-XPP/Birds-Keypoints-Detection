@@ -2,3 +2,4 @@
 /coco/*
 /pic/*
 /output/*
+/__pycache__/

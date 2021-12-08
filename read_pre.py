@@ -13,9 +13,7 @@ import os
 ROOT_DIR = os.getcwd()
 
 # 关键点阈值
-_KEYPOINT_THRESHOLD = 0.001
-_DEFAULT_FONT_SIZE = 1
-_SCALE = 1
+_KEYPOINT_THRESHOLD = 0.05
 
 
 '''
@@ -77,8 +75,7 @@ keypoint_color = np.array(keypoint_color)
 keypoint_connection_rules = []
 for i in range(0, int(len(skeleton)), 2):
     keypoint_connection_rules.append(
-        [DATASET_CATEGORIES[skeleton[i][0]]["name"], DATASET_CATEGORIES[skeleton[i][1]]["name"], skeleton[1 + i]])
-
+        [DATASET_CATEGORIES[skeleton[i][0]+1]["name"], DATASET_CATEGORIES[skeleton[i][1]+1]["name"], skeleton[1 + i]])
 
 # 读取数据函数
 def load_pred_label(img_name):
@@ -106,30 +103,27 @@ def load_pred_label(img_name):
 '''
 # 初始化图片
 class Image:
-    def __init__(self, img, scale=_SCALE):
-        """
-        Args:
-            img (ndarray): an RGB image of shape (H, W, 3).
-            scale (float): scale the input image
-        """
+    def __init__(self, img, scale=1):
         self.img = img
         self.scale = scale
         self.width, self.height = img.shape[1], img.shape[0]
+        self._default_font_size = max(
+            np.sqrt(self.height * self.width) // 90, 10 // scale
+        )
         self.setup_figure(img)
 
     def setup_figure(self, img):
-        width, height = img.shape[1], img.shape[0]
         fig = mplfigure.Figure(frameon=False)
         self.dpi = fig.get_dpi()
         fig.set_size_inches(
-            (width * _SCALE + 1e-2) / self.dpi,
-            (height * _SCALE + 1e-2) / self.dpi,
+            (self.width * self.scale + 1e-2) / self.dpi,
+            (self.height * self.scale + 1e-2) / self.dpi,
         )
         self.canvas = FigureCanvasAgg(fig)
         ax = fig.add_axes([0.0, 0.0, 1.0, 1.0])
         ax.axis("off")
         # Need to imshow this first so that other patches can be drawn on top
-        ax.imshow(img, extent=(0, width, height, 0),
+        ax.imshow(img, extent=(0, self.width, self.height, 0),
                   interpolation="nearest")
 
         self.fig = fig
@@ -154,7 +148,7 @@ def draw_box(output, box_coord, alpha=0.5, edge_color="g", line_style="-"):
     width = x1 - x0
     height = y1 - y0
 
-    linewidth = max(_DEFAULT_FONT_SIZE / 4, 1)
+    linewidth = max(output._default_font_size / 4, 1)
 
     output.ax.add_patch(
         mpl.patches.Rectangle(
@@ -163,7 +157,7 @@ def draw_box(output, box_coord, alpha=0.5, edge_color="g", line_style="-"):
             height,
             fill=False,
             edgecolor=edge_color,
-            linewidth=linewidth * _SCALE,
+            linewidth=linewidth * output.scale,
             alpha=alpha,
             linestyle=line_style,
         )
@@ -174,6 +168,8 @@ def draw_box(output, box_coord, alpha=0.5, edge_color="g", line_style="-"):
 # 绘制圆点
 def draw_circle(output, circle_coord, color, radius=3):
         x, y = circle_coord
+        radius = output._default_font_size / 2
+        radius = max(radius, 1)
         output.ax.add_patch(
             mpl.patches.Circle(circle_coord, radius=radius,
                                fill=True, color=color)
@@ -182,17 +178,18 @@ def draw_circle(output, circle_coord, color, radius=3):
 
 # 绘制连接线
 def draw_line(output, x_data, y_data, color, linestyle="-", linewidth=1):
-        linewidth = max(linewidth, 1)
-        output.ax.add_line(
+    linewidth = output._default_font_size / 3
+    linewidth = max(linewidth, 1)
+    output.ax.add_line(
             mpl.lines.Line2D(
                 x_data,
                 y_data,
-                linewidth=linewidth * _SCALE,
+                linewidth=linewidth * output.scale,
                 color=color,
                 linestyle=linestyle,
             )
         )
-        return output
+    return output
 
 # 绘制关键点和及其连接线
 def draw_and_connect_keypoints(output, keypoints, keypoint_names, keypoint_color, keypoint_connection_rules, classes):
