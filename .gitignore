@@ -4,7 +4,5 @@
 /output/*
 /__pycache__/*
 /input_img/*
-/out_data/
-/out_img/*
 /out_video/*
 /input_video/*
