@@ -3,6 +3,8 @@
 /pic/*
 /output/*
 /__pycache__/*
+/out_data/*
+/out_img/*
 /input_img/*
 /out_video/*
 /input_video/*
