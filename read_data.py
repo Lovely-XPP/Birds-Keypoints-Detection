@@ -13,7 +13,7 @@ import os
 ROOT_DIR = os.getcwd()
 
 # 关键点阈值
-_KEYPOINT_THRESHOLD = 0.05
+_KEYPOINT_THRESHOLD = 0.004
 
 
 '''
@@ -197,7 +197,7 @@ def draw_and_connect_keypoints(output, keypoints, keypoint_names, keypoint_color
     for idx, keypoint in enumerate(keypoints.tolist()):
         x, y, prob = keypoint
         if prob > _KEYPOINT_THRESHOLD:
-            if classes == 0 and (idx == 6 or idx == 8):
+            if classes == 0 and (idx == 5 or idx == 7 or idx == 6 or idx == 8):
                 continue
             output = draw_circle(output, (x, y), color=keypoint_color[idx]/255.0)
             if keypoint_names:
@@ -246,4 +246,5 @@ if __name__ == '__main__':
         print("-"*nums_str)
         img_fullName = os.path.join(INPUT_IMG_PATH, imgfile)
         img = cv2.imread(img_fullName)
+        
         fig_instances(img, classes, boxes, keypoints, keypoint_names, keypoint_color, keypoint_connection_rules)

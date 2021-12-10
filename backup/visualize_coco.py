@@ -15,7 +15,7 @@ dataType = 'train2019'
 annFile = './coco/annotations/instances_train2019.json'.format(dataDir,dataType)
 catalog = 'bird'
 
-num = 0o0015
+num = 0o0003
 point_size = 1
 point_color = (0, 0, 255) # BGR
 line_color = (255, 0, 0)

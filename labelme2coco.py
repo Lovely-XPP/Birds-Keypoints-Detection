@@ -265,7 +265,7 @@ if __name__ == '__main__':
         os.makedirs("%scoco/train2019"%saved_coco_path)
     if not os.path.exists("%scoco/val2019/"%saved_coco_path):
         os.makedirs("%scoco/val2019"%saved_coco_path)
-    # 获取images目录下所有的joson文件列表
+    # 获取images目录下所有的json文件列表
     json_list_path = glob.glob(labelme_path + "/*.json")
     # 数据划分,这里没有区分val2017和tran2017目录，所有图片都放在images目录下
     train_path, val_path = train_test_split(json_list_path, test_size=test_rate)
