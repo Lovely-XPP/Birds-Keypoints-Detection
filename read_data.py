@@ -10,7 +10,7 @@ import os
 总体设置区域
 '''
 # 路径设置
-ROOT_DIR = os.getcwd()
+ROOT_DIR = '/Volumes/Work/Code/Birds-Keypoints-Detection'
 
 # 关键点阈值
 _KEYPOINT_THRESHOLD = 0.004
@@ -219,16 +219,18 @@ def fig_instances(img, classes, boxes, keypoints, keypoint_names, keypoint_color
     output = Image(img)
     output = draw_box(output, boxes, alpha=0.5, edge_color="g", line_style="-")
     output = draw_and_connect_keypoints(output, keypoints, keypoint_names, keypoint_color, keypoint_connection_rules, classes)
-    cv2.imshow('detection', output.get_image())
-    if cv2.waitKey(0) == 27:
-        return 
+    img_path = os.path.join(ROOT_DIR, 'out_img/') + 'output.jpg'
+    cv2.imwrite(img_path, output.get_image())
 
 '''
 主函数
 '''
 if __name__ == '__main__':
-    staus = ["不在飞行", "正在飞行"]
+    status = ["不在飞行", "正在飞行"]
     INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input_img/')
+    with open('/Volumes/Work/Code/darknet/name.txt', 'r') as f:
+        name = f.read()
+    name = name.split('\n')
     for imgfile in os.listdir(INPUT_IMG_PATH):
         if '.' in imgfile:
             imgfile_base = imgfile.split('.')[0]
@@ -242,9 +244,12 @@ if __name__ == '__main__':
             print("无检测结果！\n")
             print("-"*nums_str)
             continue
-        print("鸟类名称：\n当前状态：" + staus[classes] + "\n")
+        print("鸟类名称：" + name[0] + "\n" + "当前状态：" + status[classes] + "\n")
         print("-"*nums_str)
         img_fullName = os.path.join(INPUT_IMG_PATH, imgfile)
         img = cv2.imread(img_fullName)
-        
+        with open('/Volumes/Work/Code/Birds-Keypoints-Detection/statu.txt', 'w') as f:
+            f.write(status[classes])
+            f.write('\n')
+            f.write(str(scores))
         fig_instances(img, classes, boxes, keypoints, keypoint_names, keypoint_color, keypoint_connection_rules)

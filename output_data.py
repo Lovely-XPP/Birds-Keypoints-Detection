@@ -16,8 +16,8 @@ WINDOW_NAME = "detections"
 ROOT_DIR = os.getcwd()
 
 # inference
-INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input_img/')
-OUTPUT_DATA_PATH = os.path.join(ROOT_DIR, 'out_data/')
+INPUT_IMG_PATH = '/Volumes/Work/Code/Birds-Keypoints-Detection/input_img/'
+OUTPUT_DATA_PATH = '/Volumes/Work/Code/Birds-Keypoints-Detection/out_data/'
 
 # 数据集路径
 DATASET_ROOT = ROOT_DIR
@@ -93,7 +93,7 @@ skeleton = [[1, 2],  # 第 1 组连接线，下同
 def setup_cfg():
     # load config from file and command-line arguments
     cfg = get_cfg()
-    config_file = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
+    config_file = "/Volumes/Work/Code/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
     cfg.merge_from_file(config_file)   # 从config file 覆盖配置
     
     # 更改配置参数
@@ -109,7 +109,7 @@ def setup_cfg():
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # 类别数
     cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
     cfg.TEST.KEYPOINT_OKS_SIGMAS = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-    cfg.MODEL.WEIGHTS = "./output/model_final.pth"  # 预训练模型权重
+    cfg.MODEL.WEIGHTS = "/Volumes/Work/Code/Birds-Keypoints-Detection/output/model_final.pth"  # 预训练模型权重
     # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
     # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
     cfg.SOLVER.IMS_PER_BATCH = 10
@@ -177,6 +177,7 @@ if __name__ == "__main__":
     logger = setup_logger()
 
     cfg = setup_cfg()
+    os.system('rm -r -f ' + OUTPUT_DATA_PATH)
     if not exists(OUTPUT_DATA_PATH):
         os.mkdir(OUTPUT_DATA_PATH)
 
