@@ -4,6 +4,11 @@
 
 The repo is a bird-keypoints-detection based on Detectron 2. I use `labelme` as the tool to annotate pictures, which generates `json` files. Then, translate the `json` files to `coco` dataset by `labelme2coco.py`. Therefore, we can register the dataset to Detectron 2 and train the model.
 
+## Downloads
+Just clone the repo.
+
+Moreover, if you want the annotated dataset or pre-trained model, you can download them in release.
+
 
 ## Requirement
 
