@@ -11,7 +11,7 @@ from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import ColorMode
 
-# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+# -------- 请确认变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
 
 # 常量无需更改
 WINDOW_NAME = "detections"
@@ -221,5 +221,6 @@ if __name__ == "__main__":
         if '.' in imgfile:
             imgfile = imgfile.split('.')[0]
         data_name = OUTPUT_DATA_PATH + imgfile + '.npz'
+        # 注：dect = 0 代表没在飞，dect = 1 代表正在飞
         np.savez(data_name, dect=dect,boxes=boxes,scores=scores,classes=classes,keypoints=keypoints)
         

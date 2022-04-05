@@ -14,7 +14,7 @@ from detectron2.engine import DefaultTrainer, default_argument_parser, default_s
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+# -------- 请确认变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
 
 # 常量无需更改
 WINDOW_NAME = "detections"

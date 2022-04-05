@@ -8,7 +8,6 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import time
 import cv2
 import tqdm
-import time
 
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog, DatasetCatalog
@@ -19,7 +18,7 @@ from detectron2.utils.visualizer import ColorMode
 from predictor import VisualizationDemo
 
 
-# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+# -------- 请确认变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
 
 # 常量无需更改
 WINDOW_NAME = "detections"
