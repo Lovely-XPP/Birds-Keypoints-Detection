@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import shutil
 from sklearn.model_selection import train_test_split
+from labelme import utils
 np.random.seed(41)
 
 #---------------------- 可修改选项 ----------------------#
@@ -89,7 +90,7 @@ ROOT_DIR = os.getcwd()
 labelme_path = ROOT_DIR + '/pic/'
 saved_coco_path = "./"
 
-# 是否开启keypoints写入
+# 通过集合是否为0来判断是否开启keypoints写入，
 if len(keypoints) == 0:
     keypt = 0
     print("是否开启关键点标注：否\n")
@@ -168,7 +169,6 @@ class Lableme2CoCo:
     # 构建COCO的image字段
     def _image(self, obj, path):
         image = {}
-        from labelme import utils
         img_x = utils.img_b64_to_arr(obj['imageData'])
         h, w = img_x.shape[:-1]
         image['height'] = h

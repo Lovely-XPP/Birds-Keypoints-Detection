@@ -11,13 +11,17 @@ from detectron2.data.detection_utils import read_image
 from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import ColorMode
 
-# constants
+# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+
+# 常量无需更改
 WINDOW_NAME = "detections"
 ROOT_DIR = os.getcwd()
 
-# inference
-INPUT_IMG_PATH = '/Volumes/Work/Code/Birds-Keypoints-Detection/input_img/'
-OUTPUT_DATA_PATH = '/Volumes/Work/Code/Birds-Keypoints-Detection/out_data/'
+# 训练使用的配置文件路径
+CONFIG_FILE = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
+
+# 训练模型文件路径
+MODEL_FILE = "./output/model/model_final.pth"
 
 # 数据集路径
 DATASET_ROOT = ROOT_DIR
@@ -65,7 +69,7 @@ keypoint_flip_map = [["eye_L", "eye_R"],
                      ["wing_mid_R", "wing_mid_L"],
                      ["wing_L", "wing_R"],
                      ["wing_R", "wing_L"],
-                    ]
+                     ]
 
 # 关键点连接
 skeleton = [[1, 2],  # 第 1 组连接线，下同
@@ -88,33 +92,38 @@ skeleton = [[1, 2],  # 第 1 组连接线，下同
             [0, 139, 0]
             ]
 
+# 声明数据集的子集
+PREDEFINED_SPLITS_DATASET = {
+    "bird_train": (TRAIN_PATH, TRAIN_JSON),
+    "bird_val": (VAL_PATH, VAL_JSON),
+}
 
-
+# 配置文件参数
 def setup_cfg():
     # load config from file and command-line arguments
     cfg = get_cfg()
-    config_file = "/Volumes/Work/Code/detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
+    config_file = CONFIG_FILE
     cfg.merge_from_file(config_file)   # 从config file 覆盖配置
     
     # 更改配置参数
-    cfg.DATASETS.TRAIN = ("bird_train",)
-    cfg.DATASETS.TEST = ("bird_val",)
+    cfg.DATASETS.TRAIN = ("bird_train",) # 对应注册的数据集名
+    cfg.DATASETS.TEST = ("bird_val",)  # 对应注册的数据集名
     cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
-    cfg.DATALOADER.NUM_WORKERS = 4  # 单线程
+    cfg.DATALOADER.NUM_WORKERS = 4  # 线程数
     cfg.INPUT.MAX_SIZE_TRAIN = 400
     cfg.INPUT.MAX_SIZE_TEST = 400
     cfg.INPUT.MIN_SIZE_TRAIN = (160,)
     cfg.INPUT.MIN_SIZE_TEST = 160
-    cfg.MODEL.DEVICE = "cpu"
+    cfg.MODEL.DEVICE = "cpu" # 用于计算的设备
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # 类别数
     cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
     cfg.TEST.KEYPOINT_OKS_SIGMAS = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-    cfg.MODEL.WEIGHTS = "/Volumes/Work/Code/Birds-Keypoints-Detection/output/model_final.pth"  # 预训练模型权重
+    cfg.MODEL.WEIGHTS = MODEL_FILE  # 预训练模型权重
     # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
     # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
     cfg.SOLVER.IMS_PER_BATCH = 10
     ITERS_IN_ONE_EPOCH = 500
-    cfg.SOLVER.MAX_ITER = 1500  # 12 epochs
+    cfg.SOLVER.MAX_ITER = 1500  
     cfg.SOLVER.BASE_LR = 0.002
     cfg.SOLVER.MOMENTUM = 0.9
     cfg.SOLVER.WEIGHT_DECAY = 0.001
@@ -132,6 +141,14 @@ def setup_cfg():
     cfg.freeze()
     return cfg
 
+# -------------------------- 以下代码若无问题则无需更改 -------------------------- #
+
+# 输出路径（默认即可）
+INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input/img/')
+INPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'input/video/')
+OUTPUT_IMG_PATH = os.path.join(ROOT_DIR, 'output/img/')
+OUTPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'output/video/')
+OUTPUT_DATA_PATH = os.path.join(ROOT_DIR, 'output/data/')
 
 def get_Predictions_Info(predictions):
     boxes = predictions.pred_boxes if predictions.has("pred_boxes") else None
@@ -177,6 +194,8 @@ if __name__ == "__main__":
     logger = setup_logger()
 
     cfg = setup_cfg()
+    print("警告：输出文件夹已有内容，即将清空输出文件夹，请按回车继续！")
+    a = input()
     os.system('rm -r -f ' + OUTPUT_DATA_PATH)
     if not exists(OUTPUT_DATA_PATH):
         os.mkdir(OUTPUT_DATA_PATH)
@@ -197,7 +216,7 @@ if __name__ == "__main__":
         else:
             dect = 1
             boxes, scores, classes, keypoints = get_Predictions_Info(outputs["instances"])
-            print("提示：已成功保存检测数据至/out_data/！")
+            print("提示：已成功保存检测数据至/output/data/！")
         
         if '.' in imgfile:
             imgfile = imgfile.split('.')[0]

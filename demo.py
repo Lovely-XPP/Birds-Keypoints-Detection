@@ -1,4 +1,4 @@
-from Visualizer import Visualizer
+from detectron2.utils.visualizer import Visualizer
 from detectron2.engine import DefaultPredictor
 import argparse
 import glob
@@ -18,15 +18,21 @@ from detectron2.utils.logger import setup_logger
 from detectron2.utils.visualizer import ColorMode
 from predictor import VisualizationDemo
 
-# constants
+
+# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+
+# 常量无需更改
 WINDOW_NAME = "detections"
 ROOT_DIR = os.getcwd()
 
-# inference
-INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input_img/')
-INPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'input_video/')
-OUTPUT_IMG_PATH = os.path.join(ROOT_DIR, 'out_img/')
-OUTPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'out_video/')
+# 训练使用的配置文件路径
+CONFIG_FILE = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
+
+# 训练模型文件路径
+MODEL_FILE = "./output/model/model_final.pth"
+
+# 输出置信度设置（仅种类识别，非关键点，0-1）
+THRESHOLD = 0.95
 
 # 数据集路径
 DATASET_ROOT = ROOT_DIR
@@ -74,7 +80,7 @@ keypoint_flip_map = [["eye_L", "eye_R"],
                      ["wing_mid_R", "wing_mid_L"],
                      ["wing_L", "wing_R"],
                      ["wing_R", "wing_L"],
-                    ]
+                     ]
 
 # 关键点连接
 skeleton = [[1, 2],  # 第 1 组连接线，下同
@@ -102,6 +108,60 @@ PREDEFINED_SPLITS_DATASET = {
     "bird_train": (TRAIN_PATH, TRAIN_JSON),
     "bird_val": (VAL_PATH, VAL_JSON),
 }
+
+# 配置文件参数
+def setup_cfg(args):
+    # load config from file and command-line arguments
+    cfg = get_cfg()
+    args.config_file = CONFIG_FILE
+    cfg.merge_from_file(args.config_file)   # 从config file 覆盖配置
+    cfg.merge_from_list(args.opts)          # 从CLI参数 覆盖配置
+
+    # 更改配置参数
+    cfg.DATASETS.TRAIN = ("bird_train",)  # 对应注册的数据集名
+    cfg.DATASETS.TEST = ("bird_val",)  # 对应注册的数据集名
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+    cfg.DATALOADER.NUM_WORKERS = 4  # 线程数
+    cfg.INPUT.MAX_SIZE_TRAIN = 400
+    cfg.INPUT.MAX_SIZE_TEST = 400
+    cfg.INPUT.MIN_SIZE_TRAIN = (160,)
+    cfg.INPUT.MIN_SIZE_TEST = 160
+    cfg.MODEL.DEVICE = "cpu"  # 用于计算的设备
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2  # 类别数
+    cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
+    cfg.TEST.KEYPOINT_OKS_SIGMAS = [
+        0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    cfg.MODEL.WEIGHTS = MODEL_FILE  # 预训练模型权重
+    cfg.MODEL.WEIGHTS = MODEL_FILE  # 预训练模型权重
+    # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
+    # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
+    cfg.SOLVER.IMS_PER_BATCH = 10
+    ITERS_IN_ONE_EPOCH = 500
+    cfg.SOLVER.MAX_ITER = 1500
+    cfg.SOLVER.BASE_LR = 0.002
+    cfg.SOLVER.MOMENTUM = 0.9
+    cfg.SOLVER.WEIGHT_DECAY = 0.001
+    cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
+    cfg.SOLVER.GAMMA = 0.1
+    cfg.SOLVER.STEPS = (100,)
+    cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
+    cfg.SOLVER.WARMUP_ITERS = 20
+    cfg.SOLVER.WARMUP_METHOD = "linear"
+    cfg.SOLVER.CHECKPOINT_PERIOD = ITERS_IN_ONE_EPOCH - 1
+    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
+
+    cfg.freeze()
+    return cfg
+
+# -------------------------- 以下代码若无问题则无需更改 -------------------------- #
+
+# 输出路径（默认即可）
+INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input/img/')
+INPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'input/video/')
+OUTPUT_IMG_PATH = os.path.join(ROOT_DIR, 'output/img/')
+OUTPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'output/video/')
 
 
 def register_dataset():
@@ -169,50 +229,6 @@ def register_dataset_instances(name, metadate, json_file, image_root):
                                   **metadate)
 
 
-def setup_cfg(args):
-    # load config from file and command-line arguments
-    cfg = get_cfg()
-    args.config_file = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
-    cfg.merge_from_file(args.config_file)   # 从config file 覆盖配置
-    cfg.merge_from_list(args.opts)          # 从CLI参数 覆盖配置
-    
-    # 更改配置参数
-    cfg.DATASETS.TRAIN = ("bird_train",)
-    cfg.DATASETS.TEST = ("bird_val",)
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.95
-    cfg.DATALOADER.NUM_WORKERS = 4  # 单线程
-    cfg.INPUT.MAX_SIZE_TRAIN = 400
-    cfg.INPUT.MAX_SIZE_TEST = 400
-    cfg.INPUT.MIN_SIZE_TRAIN = (160,)
-    cfg.INPUT.MIN_SIZE_TEST = 160
-    cfg.MODEL.DEVICE = "cpu"
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # 类别数
-    cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
-    cfg.TEST.KEYPOINT_OKS_SIGMAS = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-    cfg.MODEL.WEIGHTS = "./output/model_final.pth"  # 预训练模型权重
-    # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
-    # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
-    cfg.SOLVER.IMS_PER_BATCH = 10
-    ITERS_IN_ONE_EPOCH = 500
-    cfg.SOLVER.MAX_ITER = 1500  # 12 epochs
-    cfg.SOLVER.BASE_LR = 0.002
-    cfg.SOLVER.MOMENTUM = 0.9
-    cfg.SOLVER.WEIGHT_DECAY = 0.001
-    cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
-    cfg.SOLVER.GAMMA = 0.1
-    cfg.SOLVER.STEPS = (100,)
-    cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
-    cfg.SOLVER.WARMUP_ITERS = 20
-    cfg.SOLVER.WARMUP_METHOD = "linear"
-    cfg.SOLVER.CHECKPOINT_PERIOD = ITERS_IN_ONE_EPOCH - 1
-    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
-    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
-
-    cfg.freeze()
-    return cfg
-
-
 def get_parser():
     parser = argparse.ArgumentParser(description="Detectron2 Demo")
     # 是否读取摄像头
@@ -224,7 +240,7 @@ def get_parser():
     parser.add_argument(
         "--config-file",
         # default="../faster_rcnn_R_101_FPN_3x.yaml",
-        default="../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml",
+        default=CONFIG_FILE,
         metavar="FILE",
         help="path to config file",
     )
@@ -232,7 +248,7 @@ def get_parser():
     parser.add_argument(
         "--confidence-threshold",
         type=float,
-        default=0.95,
+        default=THRESHOLD,
         help="Minimum score for instance predictions to be shown",
     )
     parser.add_argument(
@@ -344,13 +360,13 @@ if __name__ == "__main__":
             v = Visualizer(img[:,:,::-1], MetadataCatalog.get(cfg.DATASETS.TRAIN[0]), scale=1.2)
             out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
             boxes, scores, classes, keypoints = get_Predictions_Info(outputs["instances"])
-            print(keypoints)
+            # print(keypoints)  # 查看关键点识别结果
 
             cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
             img = out.get_image()[:, :, ::-1]
             cv2.imshow(WINDOW_NAME, img)
             img_name = OUTPUT_IMG_PATH + os.path.basename(imgfile)
-            print(img_name)
+            print("识别文件已经输出到：", img_name)
             cv2.imwrite(img_name , img)
             if cv2.waitKey(0) == 27:
                 continue  # 按Esc键继续下一个图片

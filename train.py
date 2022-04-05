@@ -14,8 +14,23 @@ from detectron2.engine import DefaultTrainer, default_argument_parser, default_s
 from detectron2.evaluation import COCOEvaluator, verify_results
 from detectron2.modeling import GeneralizedRCNNWithTTA
 
-# 数据集路径
+# -------- 请确认一下变量都已经符合本地路径、数据集元数据输入、配置文件都正确后再运行！-------- #
+
+# 常量无需更改
+WINDOW_NAME = "detections"
 ROOT_DIR = os.getcwd()
+MODEL_OUTPUT = "./output/model/"
+
+# 训练使用的配置文件路径
+CONFIG_FILE = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
+
+# 训练模型文件路径
+MODEL_FILE = "./output/model/model_final.pth"
+
+# 输出置信度设置（仅种类识别，非关键点，0-1）
+THRESHOLD = 0.95
+
+# 数据集路径
 DATASET_ROOT = ROOT_DIR
 ANN_ROOT = os.path.join(DATASET_ROOT, 'coco/annotations/')
 TRAIN_PATH = os.path.join(DATASET_ROOT, 'coco/train2019/')
@@ -25,18 +40,30 @@ VAL_JSON = os.path.join(ANN_ROOT, 'instances_val2019.json')
 
 # 数据集类别元数据
 DATASET_CATEGORIES = [
-    {"name": "bird", "id": 1, "isthing": 1, "iskeypoint": 0, "color": [0, 255, 255]},
-    {"name": "flying_bird", "id": 2, "isthing": 1, "iskeypoint": 0, "color": [0, 255, 255]},
-    {"name": "mouth", "id": 1, "isthing": 0, "iskeypoint": 1, "color": [0, 139, 139]},
-    {"name": "head", "id": 2, "isthing": 0, "iskeypoint": 1, "color": [25, 25, 112]},
-    {"name": "eye_L", "id": 3, "isthing": 0, "iskeypoint": 1, "color": [139, 105, 20]},
-    {"name": "eye_R", "id": 4, "isthing": 0, "iskeypoint": 1, "color": [139, 105, 20]},
-    {"name": "body", "id": 5, "isthing": 0, "iskeypoint": 1, "color": [0, 139, 0]},
-    {"name": "wing_mid_L", "id": 6, "isthing": 0, "iskeypoint": 1, "color": [0, 0, 205]},
-    {"name": "wing_L", "id": 7, "isthing": 0, "iskeypoint": 1, "color": [0, 0, 0]},
-    {"name": "wing_mid_R", "id": 8, "isthing": 0, "iskeypoint": 1, "color": [0, 0, 205]},
-    {"name": "wing_R", "id": 9, "isthing": 0, "iskeypoint": 1, "color": [0, 0, 0]},
-    {"name": "tail", "id": 10, "isthing": 0, "iskeypoint": 1, "color": [85, 26, 139]}
+    {"name": "bird", "id": 1, "isthing": 1,
+        "iskeypoint": 0, "color": [0, 255, 255]},
+    {"name": "flying_bird", "id": 2, "isthing": 1,
+        "iskeypoint": 0, "color": [0, 255, 255]},
+    {"name": "mouth", "id": 1, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 139, 139]},
+    {"name": "head", "id": 2, "isthing": 0,
+        "iskeypoint": 1, "color": [25, 25, 112]},
+    {"name": "eye_L", "id": 3, "isthing": 0,
+        "iskeypoint": 1, "color": [139, 105, 20]},
+    {"name": "eye_R", "id": 4, "isthing": 0,
+        "iskeypoint": 1, "color": [139, 105, 20]},
+    {"name": "body", "id": 5, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 139, 0]},
+    {"name": "wing_mid_L", "id": 6, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 0, 205]},
+    {"name": "wing_L", "id": 7, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 0, 0]},
+    {"name": "wing_mid_R", "id": 8, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 0, 205]},
+    {"name": "wing_R", "id": 9, "isthing": 0,
+        "iskeypoint": 1, "color": [0, 0, 0]},
+    {"name": "tail", "id": 10, "isthing": 0,
+        "iskeypoint": 1, "color": [85, 26, 139]}
 ]
 
 # 是否开启关键点检测
@@ -49,26 +76,26 @@ keypoint_flip_map = [["eye_L", "eye_R"],
                      ["wing_mid_R", "wing_mid_L"],
                      ["wing_L", "wing_R"],
                      ["wing_R", "wing_L"],
-                    ]
+                     ]
 
 # 关键点连接
-skeleton = [[1,2], # 第 1 组连接线，下同
-            [0, 255, 255], # 第 1 组连接线的颜色，下同
-            [2,3],
+skeleton = [[1, 2],  # 第 1 组连接线，下同
+            [0, 255, 255],  # 第 1 组连接线的颜色，下同
+            [2, 3],
             [85, 26, 139],
-            [2,4],
+            [2, 4],
             [85, 26, 139],
-            [2,5],
+            [2, 5],
             [0, 0, 0],
-            [5,6],
+            [5, 6],
             [0, 139, 139],
-            [6,7],
+            [6, 7],
             [139, 105, 20],
-            [5,8],
+            [5, 8],
             [0, 139, 139],
-            [8,9],
+            [8, 9],
             [139, 105, 20],
-            [5,10],
+            [5, 10],
             [0, 139, 0]
             ]
 
@@ -77,6 +104,57 @@ PREDEFINED_SPLITS_DATASET = {
     "bird_train": (TRAIN_PATH, TRAIN_JSON),
     "bird_val": (VAL_PATH, VAL_JSON),
 }
+
+# 配置文件参数
+
+
+def setup_cfg(args):
+    # load config from file and command-line arguments
+    cfg = get_cfg()
+    args.config_file = CONFIG_FILE
+    cfg.merge_from_file(args.config_file)   # 从config file 覆盖配置
+    cfg.merge_from_list(args.opts)          # 从CLI参数 覆盖配置
+
+    # 更改配置参数
+    cfg.DATASETS.TRAIN = ("bird_train",)  # 对应注册的数据集名
+    cfg.DATASETS.TEST = ("bird_val",)  # 对应注册的数据集名
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+    cfg.DATALOADER.NUM_WORKERS = 4  # 线程数
+    cfg.INPUT.MAX_SIZE_TRAIN = 400
+    cfg.INPUT.MAX_SIZE_TEST = 400
+    cfg.INPUT.MIN_SIZE_TRAIN = (160,)
+    cfg.INPUT.MIN_SIZE_TEST = 160
+    cfg.MODEL.DEVICE = "cpu"  # 用于计算的设备
+    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2  # 类别数
+    cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
+    cfg.TEST.KEYPOINT_OKS_SIGMAS = [
+        0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+    cfg.MODEL.WEIGHTS = MODEL_FILE  # 预训练模型权重
+    cfg.MODEL.WEIGHTS = MODEL_FILE  # 预训练模型权重
+    # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
+    # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
+    cfg.SOLVER.IMS_PER_BATCH = 10
+    ITERS_IN_ONE_EPOCH = 500
+    cfg.SOLVER.MAX_ITER = 1500
+    cfg.SOLVER.BASE_LR = 0.002
+    cfg.SOLVER.MOMENTUM = 0.9
+    cfg.SOLVER.WEIGHT_DECAY = 0.001
+    cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
+    cfg.SOLVER.GAMMA = 0.1
+    cfg.SOLVER.STEPS = (100,)
+    cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
+    cfg.SOLVER.WARMUP_ITERS = 20
+    cfg.SOLVER.WARMUP_METHOD = "linear"
+    cfg.SOLVER.CHECKPOINT_PERIOD = ITERS_IN_ONE_EPOCH - 1
+    cfg.MODEL.RETINANET.SCORE_THRESH_TEST = args.confidence_threshold
+    cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = args.confidence_threshold
+    cfg.MODEL.PANOPTIC_FPN.COMBINE.INSTANCES_CONFIDENCE_THRESH = args.confidence_threshold
+    cfg.OUTPUT_DIR = MODEL_OUTPUT
+
+    cfg.freeze()
+    return cfg
+
+# -------------------------- 以下代码若无问题则无需更改 -------------------------- #
 
 def register_dataset():
     """
@@ -137,8 +215,6 @@ def register_dataset_instances(name, metadate, json_file, image_root):
                                   **metadate)
 
 
-
-
 class Trainer(DefaultTrainer):
     @classmethod
     def build_evaluator(cls, cfg, dataset_name, output_folder=None):
@@ -164,50 +240,8 @@ class Trainer(DefaultTrainer):
         return res
 
 
-def setup(args):
-    """
-    Create configs and perform basic setups.
-    """
-    cfg = get_cfg() # 拷贝default config副本
-    args.config_file = "../detectron2/configs/COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"
-    cfg.merge_from_file(args.config_file)   # 从config file 覆盖配置
-    cfg.merge_from_list(args.opts)          # 从CLI参数 覆盖配置
-
-    # 更改配置参数
-    cfg.DATASETS.TRAIN = ("bird_train",)
-    cfg.DATASETS.TEST = ("bird_val",)
-    cfg.DATALOADER.NUM_WORKERS = 4  # 单线程
-    cfg.INPUT.MAX_SIZE_TRAIN = 400
-    cfg.INPUT.MAX_SIZE_TEST = 400
-    cfg.INPUT.MIN_SIZE_TRAIN = (160,)
-    cfg.INPUT.MIN_SIZE_TEST = 160
-    cfg.MODEL.DEVICE = "cpu"
-    cfg.MODEL.ROI_HEADS.NUM_CLASSES = 2 # 类别数
-    cfg.MODEL.ROI_KEYPOINT_HEAD.NUM_KEYPOINTS = 10  # 关键点数量
-    cfg.TEST.KEYPOINT_OKS_SIGMAS = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-    # cfg.MODEL.WEIGHTS = "./R50-FPN-3x.pkl"  # 预训练模型权重
-    # cfg.MODEL.WEIGHTS = "./output/model_final.pth"   # 最终权重
-    cfg.SOLVER.IMS_PER_BATCH = 5  # batch_size=2; iters_in_one_epoch = dataset_imgs/batch_size
-    ITERS_IN_ONE_EPOCH = 40
-    cfg.SOLVER.MAX_ITER = 200# 12 epochs
-    cfg.SOLVER.BASE_LR = 0.002
-    cfg.SOLVER.MOMENTUM = 0.9
-    cfg.SOLVER.WEIGHT_DECAY = 0.001
-    cfg.SOLVER.WEIGHT_DECAY_NORM = 0.0
-    cfg.SOLVER.GAMMA = 0.1
-    cfg.SOLVER.STEPS = (100,)
-    cfg.SOLVER.WARMUP_FACTOR = 1.0 / 1000
-    cfg.SOLVER.WARMUP_ITERS = 10
-    cfg.SOLVER.WARMUP_METHOD = "linear"
-    cfg.SOLVER.CHECKPOINT_PERIOD = ITERS_IN_ONE_EPOCH - 1
-
-    cfg.freeze()
-    default_setup(cfg, args)
-    return cfg
-
-
 def main(args):
-    cfg = setup(args)
+    cfg = setup_cfg(args)
     print(cfg)
 
     # 注册数据集
