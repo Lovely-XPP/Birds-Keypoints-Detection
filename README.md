@@ -1,9 +1,8 @@
 # Birds-Keypoints-Detection
 
-![bailu.jpg]("https://user-images.githubusercontent.com/66028151/164045013-513d13c3-3805-4635-981b-c4152dbc5221.jpg")![dectect_bailu.jpg]("https://user-images.githubusercontent.com/66028151/164045730-a2b99681-163b-4606-b730-25ac6d234c73.jpg")
-
-
-
+<center class="half">
+    <img src="https://user-images.githubusercontent.com/66028151/164048173-b14e89c5-26ad-4d44-afd3-a56f75a7f5d1.jpg" width="600"/><img src="https://user-images.githubusercontent.com/66028151/164048201-51a65d57-0e24-4f64-a3a3-92afb075d26a.jpg" width="600"/> 
+</center>
 
 
 
