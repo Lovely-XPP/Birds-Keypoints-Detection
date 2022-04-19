@@ -1,8 +1,12 @@
 # Birds-Keypoints-Detection
 
-<center class="half">
-    <img src="https://user-images.githubusercontent.com/66028151/164048173-b14e89c5-26ad-4d44-afd3-a56f75a7f5d1.jpg" width="600"/><img src="https://user-images.githubusercontent.com/66028151/164048201-51a65d57-0e24-4f64-a3a3-92afb075d26a.jpg" width="600"/> 
-</center>
+<div style="align: center">
+<img src="https://user-images.githubusercontent.com/66028151/164048173-b14e89c5-26ad-4d44-afd3-a56f75a7f5d1.jpg" width="600">
+</div>
+
+<div style="align: center">
+<img src="https://user-images.githubusercontent.com/66028151/164048201-51a65d57-0e24-4f64-a3a3-92afb075d26a.jpg" width="600">
+</div>
 
 
 
