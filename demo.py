@@ -1,5 +1,6 @@
 from detectron2.utils.visualizer import Visualizer
 from detectron2.engine import DefaultPredictor
+from genericpath import exists
 import argparse
 import glob
 import multiprocessing as mp
@@ -161,8 +162,11 @@ INPUT_IMG_PATH = os.path.join(ROOT_DIR, 'input/img/')
 INPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'input/video/')
 OUTPUT_IMG_PATH = os.path.join(ROOT_DIR, 'output/img/')
 OUTPUT_VIDEO_PATH = os.path.join(ROOT_DIR, 'output/video/')
-
-
+if not exists(OUTPUT_IMG_PATH):
+    os.mkdir(OUTPUT_IMG_PATH)
+if not exists(OUTPUT_VIDEO_PATH):
+    os.mkdir(OUTPUT_VIDEO_PATH)
+    
 def register_dataset():
     """
     purpose: register all splits of dataset with PREDEFINED_SPLITS_DATASET
