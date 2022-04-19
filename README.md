@@ -1,5 +1,12 @@
 # Birds-Keypoints-Detection
 
+![bailu.jpg]("https://user-images.githubusercontent.com/66028151/164045013-513d13c3-3805-4635-981b-c4152dbc5221.jpg")![dectect_bailu.jpg]("https://user-images.githubusercontent.com/66028151/164045730-a2b99681-163b-4606-b730-25ac6d234c73.jpg")
+
+
+
+
+
+
 ## Introduction
 
 The repo is a bird-keypoints-detection based on Detectron 2. I use `labelme` as the tool to annotate pictures, which generates `json` files. Then, translate the `json` files to `coco` dataset by `labelme2coco.py`. Therefore, we can register the dataset to Detectron 2 and train the model.
