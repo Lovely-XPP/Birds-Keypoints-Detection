@@ -32,9 +32,17 @@ pip3 install labelme cv2 tqdm argparse
 
 At this part, I will introduce the function of main code files. For how to use the code, you can read the comment on the head of these code files.
 
+### coco_visualize.py
+
+Visualize COCO format data.
+
+### labelme2coco_universal.py
+
+Transform the labelme annotation format to the coco format (suit for any case).
+
 ### labelme2coco.py
 
-Translate the labelme annotation format to the coco format.
+Transform the labelme annotation format to the coco format (only suit for this repo).
 
 ###  train.py
 
